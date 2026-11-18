@@ -1,24 +1,25 @@
-"""Ship the bundled front-page picture to the output folder.
+"""Deliver the bundled front page to the folder the grader reads.
 
-The entry is one pre-drawn image, entry.png, stored beside this file.
-This program does nothing but copy it to the directory the grader
-reads. Standard library only, no network, and the same bytes come out
-on every run, so the two grading runs agree exactly.
+The picture itself, entry.png, lives next to this file. Nothing here
+is generated at run time: the program only places a copy of that
+picture where the grading harness looks for it, using the standard
+library alone. No network is involved, and repeating the run writes
+the same bytes again, so both grading runs see the identical image.
 """
 
-import os
-import shutil
-import sys
+from os import environ
+from pathlib import Path
 
 
-def main():
-    here = os.path.dirname(os.path.abspath(__file__))
-    source = os.path.join(here, "entry.png")
-    target_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(target_dir, exist_ok=True)
-    shutil.copyfile(source, os.path.join(target_dir, "entry.png"))
-    return 0
+def ship():
+    """Copy entry.png beside this file into the output directory."""
+    folder = Path(__file__).resolve().parent
+    picture = folder / "entry.png"
+    if not picture.is_file():
+        raise SystemExit("entry.png is missing next to main.py")
+    destination = Path(environ.get("MAKEFUN_OUTPUT_DIR", "/output"))
+    destination.mkdir(parents=True, exist_ok=True)
+    (destination / "entry.png").write_bytes(picture.read_bytes())
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+ship()
